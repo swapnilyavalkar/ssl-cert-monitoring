@@ -2,25 +2,25 @@
 
 # Tableau Server SSL Certificate Monitoring Script
 
-This PowerShell script is designed to monitor the SSL certificates of specified Tableau Server URLs and send email alerts if the certificates are close to expiration. The script checks the certificate expiration dates and triggers an email notification if a certificate is due to expire within 90 days.
+This PowerShell script is designed to monitor the SSL certificates of specified Tableau Server URLs and send email alerts if the certificates are close to expiration. The script checks the certificate expiration dates and triggers an email notification if a certificate is due to expire within N days.
 
 ## Prerequisites
 
 Before using this script, ensure that you have the following:
 
-- **PowerShell**: The script is written in PowerShell, so you need to have PowerShell installed on the machine where the script will be executed.
+- **PowerShell**: The script is written in PowerShell, so you need to have PowerShell execution rights on the machine where the script will be executed.
 - **SMTP Server Details**: You will need to provide your SMTP server details to send email notifications.
 - **Access to Tableau Server URLs**: The script must have access to the specified Tableau Server URLs to retrieve SSL certificate information.
 
 ## How to Use the Script
 
-### 1. Clone the Repository
+### 1. Clone the Repository OR Download it.
 
 First, clone the repository containing the script to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/swapnilyavalkar/SSL-Cert-Monitoring.git
+cd SSL-Cert-Monitoring
 ```
 
 ### 2. Open the Script
@@ -35,7 +35,10 @@ Before running the script, you need to configure the following variables within 
   ```powershell
   $Tableau_Server_URLs = @("https://prod.abc.com/", "https://dev.prod.com/")
   ```
-
+- **$number_of_days_till_expiration**: Change this number to required number of days.
+  ```powershell
+  $number_of_days_till_expiration = 90
+  ```
 - **$smtp**: Specify your SMTP server address. Example:
   ```powershell
   $smtp = "smtp.yourdomain.com"
@@ -55,7 +58,12 @@ Before running the script, you need to configure the following variables within 
   ```powershell
   $cc = "manager@yourdomain.com"
   ```
-
+ 
+ - **$subject**: (Optional) Specify email subject.
+  ```powershell
+  $subject = "CERTIFICATE EXPIRATION ALERT: $cn_name_tableau_server"
+  ```
+  
 - **$team**: Customize the team name to be displayed in the alert email. Example:
   ```powershell
   $team = "Tableau Admin Team"
@@ -93,10 +101,10 @@ Before running the script, you need to configure the following variables within 
 
 ### 5. Check Email Alerts
 
-If any of the certificates are due to expire within 90 days, the script will send an email alert to the specified recipients with the following details:
-- Tableau Server URL
-- Certificate Expiration Date
-- Days Left Until Expiration
+If any of the certificates are due to expire within mentioned days, the script will send an email alert to the specified recipients as per below screenshot:
+
+![image](https://github.com/user-attachments/assets/5ab01f17-5960-4555-9909-92fb115f45de)
+
 
 ### Script Workflow
 
@@ -104,7 +112,7 @@ If any of the certificates are due to expire within 90 days, the script will sen
 
 2. **Expiration Check**: It calculates the number of days left before each certificate expires.
 
-3. **Email Alert Trigger**: If a certificate is due to expire within 90 days, the script sends an email alert to the configured recipients.
+3. **Email Alert Trigger**: If a certificate is due to expire within N days, the script sends an email alert to the configured recipients.
 
 ## Troubleshooting
 
@@ -116,12 +124,13 @@ If any of the certificates are due to expire within 90 days, the script will sen
 Here is a brief overview of key parts of the script:
 
 ```powershell
-$Tableau_Server_URLs = @("https://prod.abc.com/", "https://dev.prod.com/") # List of Tableau Server URLs to monitor
+$Tableau_Server_URLs = @("https://prod.abc.com/", "https://dev.abc.com/") # List of Tableau Server URLs to monitor
+$number_of_days_till_expiration = 90 # Change this number to required number of days.
 $smtp = ""  # SMTP server for sending emails
 $from = ""  # From email address
 $to = ""    # To email addresses
 $cc = ""    # CC email addresses
-$subject = ""  # Email subject line
+$subject = ""
 
 $team = "Tableau Admin Team"  # Name of the team sending the alert
 ```
@@ -149,9 +158,9 @@ ForEach ($URL in $Tableau_Server_URLs) {
 	$today = (GET-DATE)
 	$new_date_object = New-TimeSpan -Start $today -End $output.'Cert End Date'
 	$days_left_before_expiration = $new_date_object.Days
-
-    # If the certificate is expiring within 90 days, send an alert email
-	if ($days_left_before_expiration -le 90) {
+	
+    # If the certificate is expiring within $number_of_days_till_expiration days, send an alert email
+	if ($days_left_before_expiration -le $number_of_days_till_expiration) {
 		# Email body and sending logic
 	    Send-MailMessage -SmtpServer $smtp -From $from -To $to -Cc $cc -Subject $subject -Body $body -BodyAsHtml
 	}
@@ -167,5 +176,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 Contributions are welcome! Please fork this repository and submit a pull request with your changes.
 
 ---
-
-Make sure to update the URLs, SMTP details, and any other specific information in the script to match your environment.
